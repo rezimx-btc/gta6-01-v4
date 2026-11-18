@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>VELMARA HEAT — open-world crime game</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0d1526; font-family: 'Segoe UI', system-ui, sans-serif; }
+  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  #hud { position: fixed; inset: 0; pointer-events: none; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
+  #topbar { position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; }
+  #cash { font-size: 26px; font-weight: 800; color: #7dff9e; }
+  #listeners { font-size: 15px; font-weight: 700; color: #ffd166; }
+  #clock { font-size: 15px; font-weight: 700; }
+  #wanted { font-size: 30px; letter-spacing: 4px; color: #ffd166; }
+  #wanted .lit { color: #ffcf3f; }
+  #wanted .dim { color: rgba(255,255,255,.25); }
+  #objective { position: absolute; top: 64px; left: 16px; max-width: 420px; font-size: 16px; font-weight: 700; background: rgba(10,16,32,.55); padding: 8px 12px; border-left: 4px solid #ffd166; border-radius: 4px; }
+  #objective small { display: block; font-size: 12px; color: #ffd166; font-weight: 800; letter-spacing: 1px; }
+  #minimap { position: absolute; right: 16px; bottom: 16px; width: 180px; height: 180px; border: 3px solid rgba(255,255,255,.75); border-radius: 50%; background: rgba(8,14,28,.8); }
+  #speedo { position: absolute; right: 210px; bottom: 22px; text-align: right; }
+  #speedo b { font-size: 34px; }
+  #speedo span { font-size: 14px; color: #cfe3ff; }
+  #healthbar { position: absolute; left: 16px; bottom: 22px; width: 220px; }
+  #healthbar .label { font-size: 12px; font-weight: 800; letter-spacing: 1px; color: #ffb3b3; }
+  #healthfill { height: 10px; background: #ff5a5a; border-radius: 5px; margin-top: 3px; }
+  #radio { position: absolute; left: 16px; bottom: 62px; font-size: 14px; font-weight: 700; color: #9fd8ff; }
+  #toast { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); font-size: 24px; font-weight: 800; color: #ffe9a8; text-align: center; }
+  #hint { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); font-size: 13px; color: #dfe9ff; background: rgba(10,16,32,.55); padding: 6px 12px; border-radius: 20px; }
+  #screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(160deg, #1b1040 0%, #7a2e6d 45%, #ff7a3d 100%); color: #fff; text-align: center; z-index: 5; }
+  #screen h1 { font-size: 64px; margin: 0; letter-spacing: 6px; font-style: italic; }
+  #screen h2 { font-size: 20px; margin: 6px 0 22px; color: #ffd166; letter-spacing: 3px; }
+  #screen p { max-width: 560px; font-size: 15px; line-height: 1.6; color: #ffe9f2; }
+  #screen button { pointer-events: auto; margin-top: 18px; font-size: 20px; font-weight: 800; padding: 12px 42px; border: 0; border-radius: 30px; background: #ffd166; color: #231303; cursor: pointer; }
+  #screen .keys { font-size: 13px; color: #ffd9ec; margin-top: 16px; }
+  #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
+</head>
+<body>
+<canvas id="game" aria-label="Velmara Heat: explore Velmara Bay on foot and by car"></canvas>
+<div id="hud">
+  <div id="topbar">
+    <div><div id="cash">$250</div><div id="listeners">WAVE 98 &middot; 1,204 listeners</div></div>
+    <div id="clock">18:42</div>
+    <div id="wanted"></div>
+  </div>
+  <div id="objective"><small>MISSION</small><span id="objectiveText">Welcome to Velmara Bay.</span></div>
+  <canvas id="minimap" width="180" height="180"></canvas>
+  <div id="speedo"><b id="speedVal">0</b> <span id="speedUnit">km/h</span></div>
+  <div id="healthbar"><div class="label">HEALTH</div><div id="healthfill"></div></div>
+  <div id="radio">WAVE 98 &middot; Rio on air</div>
+  <div id="toast"></div>
+  <div id="hint">WASD move &middot; E steal car &middot; F fight &middot; 1/2/3 radio &middot; P save</div>
+</div>
+<div id="screen">
+  <h1>VELMARA HEAT</h1>
+  <h2>WAVE 98 &middot; VELMARA BAY</h2>
+  <p>You are Rio &ldquo;Wavelength&rdquo; Vega — getaway driver by night, pirate-radio DJ by
+  day. Every job goes out live on your station. Heat brings listeners. Listeners
+  bring heat. Eight missions, three acts, one city that never stops talking.</p>
+  <button id="playBtn">START ENGINE</button>
+  <div class="keys">WASD move / drive &middot; Mouse look &middot; E enter or steal a car &middot; F fight &middot; Shift sprint &middot; 1/2/3 radio &middot; P save &middot; Esc pause</div>
+  <div class="keys" id="saveNote">Progress autosaves after every mission.</div>
+</div>
+<p id="status" role="status" aria-live="polite"></p>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
